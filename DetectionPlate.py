@@ -179,7 +179,7 @@ def encontrarRoiPlaca(rect_plate):
     return
     
 def reconhecimentoOCR(plate):
-    cv2.imshow('plate', plate)
+    #cv2.imshow('plate', plate)
     config = r'-c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 --psm 6'
     text = list(pytesseract.image_to_string(plate, lang='eng', config=config))
     if(len(text)==lenPlate):
@@ -224,7 +224,7 @@ def normCaracterPlateList(text):
 
 def reconhecimentoALPR(plate_alpr):
     try:
-        alpr = Alpr('br', '/usr/share/openalpr/config/openalpr.defaults.conf', '/usr/share/openalpr/runtime_data')
+        alpr = Alpr('br', '/home/openALPR/config/openalpr.defaults.conf', '/home/openALPR/runtime_data')
         if not alpr.is_loaded():
             print("Error loading OpenALPR")
         else:
@@ -267,7 +267,7 @@ if __name__ == "__main__":
     source = "rtsp://admin:128Parsecs!@192.168.15.85/Streaming/channels/101"
     #source = '/dev/video0'
     #source = 'resource/carro1.mp4'
-    car_cascade = cv2.CascadeClassifier('/usr/share/openalpr/runtime_data/region/br.xml')
+    car_cascade = cv2.CascadeClassifier('/home/openALPR/runtime_data/region/br.xml')
     p1 = threading.Thread(target=Receive, args=(source,))
     p2 = threading.Thread(target=findRectPlateCascade, args=(car_cascade,))
     p1.start()
