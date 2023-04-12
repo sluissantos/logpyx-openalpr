@@ -2,10 +2,12 @@ import cv2
 import pytesseract
 import numpy as np
 import platform
-from Mqtt_interface import Mqtt_Interface
-from send_to_cloud import Send_to_cloud_Mqtt
-#pytesseract.pytesseract.tesseract_cmd = "C:/Program Files/Tesseract-OCR/tesseract.exe"
+#from Mqtt_interface import Mqtt_Interface
+#from send_to_cloud import Send_to_cloud_Mqtt
+import queue
 import time
+import threading
+q=queue.Queue()
 from openalpr import Alpr
 
 class MostCommonChar():
@@ -100,49 +102,56 @@ def preProcessamentoRoi(img_roi):
     return img
 
 
-def findRectPlateCascade(source, car_cascade):
-    video = cv2.VideoCapture(source)
+def Receive(source):
+    print('start receive')
+    cap = cv2.VideoCapture(source)
+    ret, frame = cap.read()
+    q.put(frame)
+    while ret:
+        ret, frame = cap.read()
+        q.put(frame)
+
+
+def findRectPlateCascade(car_cascade):
     while True:
-        ret, frame = video.read()
-        if (ret == False):
-            break
-        area = frame[100:900, :]
-        #cv2.imshow('frame', frame)
-        cv2.imshow('area', area)
-        area_printed = area
-        norm = np.zeros((800,800))
-        norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
-        gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)
-        cars = car_cascade.detectMultiScale(gray, 1.7, 1, minSize = (5,5), maxSize = (500,500))
-        if len(cars) != 0:
-            for (x, y, w, h) in cars:
-                area_printed = area
-                rect_plate = area[y:y + h, x:x + w]
-                plate_alpr = area[y:y + h, x:x + w]
-                #cv2.imshow('plate_alpr', plate_alpr)
-                reconhecimentoALPR(plate_alpr)
-                reconhecimentoOCR(preProcessamentoRoi(plate_alpr))
-                cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
-                encontrarRoiPlaca(rect_plate)
-                cv2.imshow('area_printed', area_printed)
-                global tempo
-                tempo = 0
-                global flagContarTempo
-                flagContarTempo = 1
-                flagContarTempo = 0
-                break
-        else:
-            if(flagContarTempo == 0):
-                flagContarTempo = 1
-                tempo = int(time.time())
-            if(flagContarTempo == 1):
-                if(int(time.time()) - tempo >= 5):
-                    if(finalPlate.getChar()):
-                        print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
-                        print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
-                        print('PLACA FINAL = ', finalPlate.getMostCommonPlate())
-                        send_data_to_cloud.send_message_to_cloud(send_data_to_cloud.client, finalPlate.getMostCommonPlate())
-                        finalPlate.cleanPlate()          
+        if(q.empty() != True):
+            frame = q.get()
+            area = frame[:, :]
+            #cv2.imshow('frame1', frame)
+            area_printed = area
+            norm = np.zeros((800,800))
+            norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
+            gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)
+            cars = car_cascade.detectMultiScale(gray, 1.7, 1, minSize = (5,5), maxSize = (500,500))
+            if len(cars) != 0:
+                for (x, y, w, h) in cars:
+                    area_printed = area
+                    rect_plate = area[y:y + h, x:x + w]
+                    plate_alpr = area[y:y + h, x:x + w]
+                    #cv2.imshow('plate_alpr', plate_alpr)
+                    reconhecimentoALPR(plate_alpr)
+                    reconhecimentoOCR(preProcessamentoRoi(plate_alpr))
+                    cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
+                    encontrarRoiPlaca(rect_plate)
+                    #cv2.imshow('area_printed', area_printed)
+                    global tempo
+                    tempo = 0
+                    global flagContarTempo
+                    flagContarTempo = 1
+                    flagContarTempo = 0
+                    break
+            else:
+                if(flagContarTempo == 0):
+                    flagContarTempo = 1
+                    tempo = int(time.time())
+                if(flagContarTempo == 1):
+                    if(int(time.time()) - tempo >= 5):
+                        if(finalPlate.getChar()):
+                            print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
+                            print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
+                            print('PLACA FINAL = ', finalPlate.getMostCommonPlate())
+                            #send_data_to_cloud.send_message_to_cloud(send_data_to_cloud.client, finalPlate.getMostCommonPlate())
+                            finalPlate.cleanPlate()          
 
         if cv2.waitKey(1) & 0xff == ord('q'):
             break
@@ -239,8 +248,8 @@ def reconhecimentoALPR(plate_alpr):
 
 
 if __name__ == "__main__":
-    communication_MQTT_overhead_crane = Mqtt_Interface()
-    send_data_to_cloud = Send_to_cloud_Mqtt()
+    #communication_MQTT_overhead_crane = Mqtt_Interface()
+    #send_data_to_cloud = Send_to_cloud_Mqtt()
     username = 'admin'
     password = '128Parsecs!'
     ip = '192.168.15.85'
@@ -255,8 +264,11 @@ if __name__ == "__main__":
         lenPlate = 9
     elif(plat == 'Windows'):
         lenPlate = 8
-    #source = "rtsp://admin:128Parsecs!@192.168.15.85/Streaming/channels/101"
+    source = "rtsp://admin:128Parsecs!@192.168.15.85/Streaming/channels/101"
     #source = '/dev/video0'
-    source = 'resource/carro1.mp4'
+    #source = 'resource/carro1.mp4'
     car_cascade = cv2.CascadeClassifier('/usr/share/openalpr/runtime_data/region/br.xml')
-    findRectPlateCascade(source, car_cascade)
+    p1 = threading.Thread(target=Receive, args=(source,))
+    p2 = threading.Thread(target=findRectPlateCascade, args=(car_cascade,))
+    p1.start()
+    p2.start()
