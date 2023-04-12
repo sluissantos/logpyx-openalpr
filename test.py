@@ -1,10 +1,3 @@
-"""
-This Python script shows Wyze v2 cam live using the RTSP link
-
-Author  : Arul John
-Created :
-Updated :
-"""
 
 import cv2
 
