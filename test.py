@@ -31,9 +31,6 @@ if __name__ == "__main__":
     stream.release()
     cv2.destroyAllWindows()
 
-
-
-
 def achaX():
     print('x=', x)
 
