@@ -2,8 +2,7 @@ import cv2
 import pytesseract
 import numpy as np
 import platform
-#from Mqtt_interface import Mqtt_Interface
-#from send_to_cloud import Send_to_cloud_Mqtt
+from send_to_cloud import Send_to_cloud_Mqtt
 import queue
 import time
 import threading
@@ -128,12 +127,10 @@ def findRectPlateCascade(car_cascade):
                     area_printed = area
                     rect_plate = area[y:y + h, x:x + w]
                     plate_alpr = area[y:y + h, x:x + w]
-                    #cv2.imshow('plate_alpr', plate_alpr)
                     reconhecimentoALPR(plate_alpr)
                     reconhecimentoOCR(preProcessamentoRoi(plate_alpr))
                     cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
                     encontrarRoiPlaca(rect_plate)
-                    #cv2.imshow('area_printed', area_printed)
                     global tempo
                     tempo = 0
                     global flagContarTempo
@@ -150,7 +147,7 @@ def findRectPlateCascade(car_cascade):
                             print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
                             print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
                             print('PLACA FINAL = ', finalPlate.getMostCommonPlate())
-                            #send_data_to_cloud.send_message_to_cloud(send_data_to_cloud.client, finalPlate.getMostCommonPlate())
+                            send_data_to_cloud.send_message_to_cloud(send_data_to_cloud.client, finalPlate.getMostCommonPlate())
                             finalPlate.cleanPlate()          
 
         if cv2.waitKey(1) & 0xff == ord('q'):
@@ -179,7 +176,6 @@ def encontrarRoiPlaca(rect_plate):
     return
     
 def reconhecimentoOCR(plate):
-    #cv2.imshow('plate', plate)
     config = r'-c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 --psm 6'
     text = list(pytesseract.image_to_string(plate, lang='eng', config=config))
     if(len(text)==lenPlate):
@@ -248,11 +244,9 @@ def reconhecimentoALPR(plate_alpr):
 
 
 if __name__ == "__main__":
-    #communication_MQTT_overhead_crane = Mqtt_Interface()
-    #send_data_to_cloud = Send_to_cloud_Mqtt()
-    username = 'admin'
+    send_data_to_cloud = Send_to_cloud_Mqtt()
+    username = 'gwqa.revolog.com.br'
     password = '128Parsecs!'
-    ip = '192.168.15.85'
     finalPlate = MostCommonChar()
     platesALPR = []
     platesOCR = []
