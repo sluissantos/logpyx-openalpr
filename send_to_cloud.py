@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import time
 import json
+import os
 
 class Send_to_cloud_Mqtt:
 
@@ -13,6 +14,7 @@ class Send_to_cloud_Mqtt:
             try:
                 self.client.connect("gwqa.revolog.com.br", 1884, 60)
                 self.client.loop_start()
+
             except:
                 print("Fail connect to Cloud ")
                 self.connect_MQTT()
@@ -25,6 +27,7 @@ class Send_to_cloud_Mqtt:
         self.client.connect("gwqa.revolog.com.br", 1884, 60)
         self.client.username_pw_set(username="tecnologia", password="128Parsecs!")
         self.connect_MQTT()
+
 
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:

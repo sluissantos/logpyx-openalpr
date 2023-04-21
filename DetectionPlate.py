@@ -6,8 +6,10 @@ from send_to_cloud import Send_to_cloud_Mqtt
 import queue
 import time
 import threading
-q=queue.Queue()
 from openalpr import Alpr
+import paho.mqtt.client as mqttClient
+
+q=queue.Queue()
 
 class MostCommonChar():
     def __init__(self):
@@ -86,7 +88,6 @@ class MostCommonChar():
             return 1
         return 0
 
-
 def preProcessamentoRoi(img_roi):
     # redmensiona a imagem da placa em 4x
     img = cv2.resize(img_roi, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
@@ -100,23 +101,22 @@ def preProcessamentoRoi(img_roi):
     img = cv2.GaussianBlur(img, (5, 5), 0)
     return img
 
-
 def Receive(source):
-    print('start receive')
     cap = cv2.VideoCapture(source)
-    ret, frame = cap.read()
-    q.put(frame)
-    while ret:
+    while True:
         ret, frame = cap.read()
+        if not ret:
+            cap.release()
+            cap = reconnect(source)
+            continue
         q.put(frame)
-
 
 def findRectPlateCascade(car_cascade):
     while True:
-        if(q.empty() != True):
+        if not q.empty():
             frame = q.get()
-            area = frame[:, :]
-            #cv2.imshow('frame1', frame)
+            area = frame[100:900, :]
+            cv2.imshow('frame', frame)
             area_printed = area
             norm = np.zeros((800,800))
             norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
@@ -131,6 +131,7 @@ def findRectPlateCascade(car_cascade):
                     reconhecimentoOCR(preProcessamentoRoi(plate_alpr))
                     cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
                     encontrarRoiPlaca(rect_plate)
+                    cv2.imshow('area_printed', area_printed)
                     global tempo
                     tempo = 0
                     global flagContarTempo
@@ -157,6 +158,15 @@ def findRectPlateCascade(car_cascade):
     return
 
 tempo = 0.0
+
+def reconnect(source):
+    while True:
+        print("Trying to reconnect...")
+        cap = cv2.VideoCapture(source)
+        if cap.isOpened():
+            print("Reconnected!")
+            return cap
+        time.sleep(1)
 
 def encontrarRoiPlaca(rect_plate):
     img = rect_plate
@@ -220,7 +230,7 @@ def normCaracterPlateList(text):
 
 def reconhecimentoALPR(plate_alpr):
     try:
-        alpr = Alpr('br', '/home/openALPR/config/openalpr.defaults.conf', '/home/openALPR/runtime_data')
+        alpr = Alpr('br', '/usr/share/openalpr/config/openalpr.defaults.conf', '/usr/share/openalpr/runtime_data')
         if not alpr.is_loaded():
             print("Error loading OpenALPR")
         else:
@@ -245,8 +255,10 @@ def reconhecimentoALPR(plate_alpr):
 
 if __name__ == "__main__":
     send_data_to_cloud = Send_to_cloud_Mqtt()
-    username = 'gwqa.revolog.com.br'
-    password = '128Parsecs!'
+    user = "gwqa.revolog.com.br"
+    password = "128Parsecs!"
+    client = mqttClient.Client("Python")
+    client.username_pw_set(user, password=password)
     finalPlate = MostCommonChar()
     platesALPR = []
     platesOCR = []
@@ -261,7 +273,7 @@ if __name__ == "__main__":
     source = "rtsp://admin:128Parsecs!@192.168.15.85/Streaming/channels/101"
     #source = '/dev/video0'
     #source = 'resource/carro1.mp4'
-    car_cascade = cv2.CascadeClassifier('/home/openALPR/runtime_data/region/br.xml')
+    car_cascade = cv2.CascadeClassifier('/usr/share/openalpr/runtime_data/region/br.xml')
     p1 = threading.Thread(target=Receive, args=(source,))
     p2 = threading.Thread(target=findRectPlateCascade, args=(car_cascade,))
     p1.start()
