@@ -3,6 +3,19 @@ import time
 import json
 import os
 
+ip_mqtt = os.getenv("IP_MQTT")
+port_mqtt = os.getenv("PORT_MQTT")
+user_name_mqtt = os.getenv("USER_NAME_MQTT")
+password_mqtt = os.getenv("PASSWORD_MQTT")
+publish_topic = os.getenv("PUBLISH_TOPIC")
+
+print('ip=', ip_mqtt)
+print('port=', port_mqtt)
+print('user=', user_name_mqtt)
+print('pass=', password_mqtt)
+print('pub=', publish_topic)
+
+
 class Send_to_cloud_Mqtt:
 
     def __init__(self):
@@ -12,7 +25,7 @@ class Send_to_cloud_Mqtt:
     def connect_MQTT(self):
         if (self.client.connected_flag == False):
             try:
-                self.client.connect("gwqa.revolog.com.br", 1884, 60)
+                self.client.connect(ip_mqtt, int(port_mqtt), 60)
                 self.client.loop_start()
 
             except:
@@ -24,8 +37,8 @@ class Send_to_cloud_Mqtt:
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
         self.client.connected_flag = False
-        self.client.connect("gwqa.revolog.com.br", 1884, 60)
-        self.client.username_pw_set(username="tecnologia", password="128Parsecs!")
+        self.client.connect(ip_mqtt, int(port_mqtt), 60)
+        self.client.username_pw_set(username=user_name_mqtt, password=password_mqtt)
         self.connect_MQTT()
 
 
@@ -49,6 +62,6 @@ class Send_to_cloud_Mqtt:
         print(json_string)
         print("\n")
         if (self.client.connected_flag == True):
-            self.client.publish("aperam/plate", json_string)
+            self.client.publish(publish_topic, json_string)
         del json_string
         json_data.clear()

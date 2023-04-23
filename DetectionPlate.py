@@ -1,3 +1,4 @@
+import os
 import cv2
 import pytesseract
 import numpy as np
@@ -7,9 +8,6 @@ import queue
 import time
 import threading
 from openalpr import Alpr
-import paho.mqtt.client as mqttClient
-
-q=queue.Queue()
 
 class MostCommonChar():
     def __init__(self):
@@ -96,7 +94,7 @@ def preProcessamentoRoi(img_roi):
     # Converte para escala de cinza
     img = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)
     # Binariza imagem
-    _, img = cv2.threshold(img, 130, 255, cv2.THRESH_BINARY)
+    _, img = cv2.threshold(img, int(tesseract_gray), 255, cv2.THRESH_BINARY)
     # Desfoque na Imagem
     img = cv2.GaussianBlur(img, (5, 5), 0)
     return img
@@ -115,13 +113,12 @@ def findRectPlateCascade(car_cascade):
     while True:
         if not q.empty():
             frame = q.get()
-            area = frame[100:900, :]
-            cv2.imshow('frame', frame)
+            area = frame[int(min_line_frame):int(max_line_frane),:]
             area_printed = area
             norm = np.zeros((800,800))
             norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
             gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)
-            cars = car_cascade.detectMultiScale(gray, 1.7, 1, minSize = (5,5), maxSize = (500,500))
+            cars = car_cascade.detectMultiScale(gray, float(scale_factor_cascade), 1, minSize = (5,5), maxSize = (500,500))
             if len(cars) != 0:
                 for (x, y, w, h) in cars:
                     area_printed = area
@@ -131,7 +128,7 @@ def findRectPlateCascade(car_cascade):
                     reconhecimentoOCR(preProcessamentoRoi(plate_alpr))
                     cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
                     encontrarRoiPlaca(rect_plate)
-                    cv2.imshow('area_printed', area_printed)
+                    #cv2.imshow('area_printed', area_printed)
                     global tempo
                     tempo = 0
                     global flagContarTempo
@@ -143,7 +140,7 @@ def findRectPlateCascade(car_cascade):
                     flagContarTempo = 1
                     tempo = int(time.time())
                 if(flagContarTempo == 1):
-                    if(int(time.time()) - tempo >= 5):
+                    if(int(time.time()) - tempo >= int(time_out_send_plate)):
                         if(finalPlate.getChar()):
                             print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
                             print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
@@ -161,17 +158,17 @@ tempo = 0.0
 
 def reconnect(source):
     while True:
-        print("Trying to reconnect...")
+        print("Trying to reconnect camera...")
         cap = cv2.VideoCapture(source)
         if cap.isOpened():
-            print("Reconnected!")
+            print("Camera reconnected!")
             return cap
         time.sleep(1)
 
 def encontrarRoiPlaca(rect_plate):
     img = rect_plate
     cinza = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, bin = cv2.threshold(cinza, 130, 255, cv2.THRESH_BINARY)
+    _, bin = cv2.threshold(cinza, int(tesseract_gray), 255, cv2.THRESH_BINARY)
     contours, hier = cv2.findContours(bin, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     bin = cv2.resize(bin, None, fx=5, fy=5, interpolation=cv2.INTER_CUBIC)
     for c in contours:
@@ -254,15 +251,23 @@ def reconhecimentoALPR(plate_alpr):
 
 
 if __name__ == "__main__":
+    q=queue.Queue()
     send_data_to_cloud = Send_to_cloud_Mqtt()
-    user = "gwqa.revolog.com.br"
-    password = "128Parsecs!"
-    client = mqttClient.Client("Python")
-    client.username_pw_set(user, password=password)
+    tesseract_gray = os.getenv("TESSERACT_GRAY")
+    scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
+    camera_source = os.getenv("CAMERA_SOURCE")
+    time_out_send_plate = os.getenv("TIME_OUT_SEND_PLATE")
+    min_line_frame = os.getenv("MIN_LINE_FRAME")
+    max_line_frane = os.getenv("MAX_LINE_FRAME")
+    print('gray=', tesseract_gray)
+    print('scale=', scale_factor_cascade)
+    print('camerasource=', camera_source)
+    print('time=', time_out_send_plate)
+    
     finalPlate = MostCommonChar()
     platesALPR = []
     platesOCR = []
-    lenPlate = 0
+    lenPlate = None
     tempo = None
     flagContarTempo = None
     plat = platform.system()
@@ -270,11 +275,8 @@ if __name__ == "__main__":
         lenPlate = 9
     elif(plat == 'Windows'):
         lenPlate = 8
-    source = "rtsp://admin:128Parsecs!@192.168.15.85/Streaming/channels/101"
-    #source = '/dev/video0'
-    #source = 'resource/carro1.mp4'
     car_cascade = cv2.CascadeClassifier('/usr/share/openalpr/runtime_data/region/br.xml')
-    p1 = threading.Thread(target=Receive, args=(source,))
+    p1 = threading.Thread(target=Receive, args=(camera_source,))
     p2 = threading.Thread(target=findRectPlateCascade, args=(car_cascade,))
     p1.start()
     p2.start()
