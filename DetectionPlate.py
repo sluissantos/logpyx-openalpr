@@ -115,7 +115,7 @@ def findRectPlateCascade(car_cascade):
             frame = q.get()
             area = frame[int(min_line_frame):int(max_line_frane),:]
             area_printed = area
-            cv2.imshow("area", area)
+            #cv2.imshow("area", area)
             norm = np.zeros((800,800))
             norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
             gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)
@@ -127,7 +127,7 @@ def findRectPlateCascade(car_cascade):
                     plate_alpr = area[y:y + h, x:x + w]
                     reconhecimentoALPR(plate_alpr)
                     reconhecimentoOCR(preProcessamentoRoi(plate_alpr))
-                    cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
+                    #cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
                     encontrarRoiPlaca(rect_plate)
                     cv2.imshow('area_printed', area_printed)
                     global tempo
@@ -228,7 +228,7 @@ def normCaracterPlateList(text):
 
 def reconhecimentoALPR(plate_alpr):
     try:
-        alpr = Alpr('br', '/usr/share/openalpr/config/openalpr.defaults.conf', '/usr/share/openalpr/runtime_data')
+        alpr = Alpr('br', '/home/openALPR/config/openalpr.defaults.conf', '/home/openALPR/runtime_data')
         if not alpr.is_loaded():
             print("Error loading OpenALPR")
         else:
@@ -279,7 +279,7 @@ if __name__ == "__main__":
         lenPlate = 9
     elif(plat == 'Windows'):
         lenPlate = 8
-    car_cascade = cv2.CascadeClassifier('/usr/share/openalpr/runtime_data/region/br.xml')
+    car_cascade = cv2.CascadeClassifier('/home/openALPR/runtime_data/region/br.xml')
     p1 = threading.Thread(target=Receive, args=(camera_source,))
     p2 = threading.Thread(target=findRectPlateCascade, args=(car_cascade,))
     p1.start()
