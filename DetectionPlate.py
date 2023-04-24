@@ -129,7 +129,7 @@ def findRectPlateCascade(car_cascade):
                     reconhecimentoOCR(preProcessamentoRoi(plate_alpr))
                     #cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
                     encontrarRoiPlaca(rect_plate)
-                    cv2.imshow('area_printed', area_printed)
+                    #cv2.imshow('area_printed', area_printed)
                     global tempo
                     tempo = 0
                     global flagContarTempo
