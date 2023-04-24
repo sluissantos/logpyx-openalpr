@@ -115,6 +115,7 @@ def findRectPlateCascade(car_cascade):
             frame = q.get()
             area = frame[int(min_line_frame):int(max_line_frane),:]
             area_printed = area
+            cv2.imshow("area", area)
             norm = np.zeros((800,800))
             norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
             gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)
@@ -128,7 +129,7 @@ def findRectPlateCascade(car_cascade):
                     reconhecimentoOCR(preProcessamentoRoi(plate_alpr))
                     cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
                     encontrarRoiPlaca(rect_plate)
-                    #cv2.imshow('area_printed', area_printed)
+                    cv2.imshow('area_printed', area_printed)
                     global tempo
                     tempo = 0
                     global flagContarTempo
@@ -252,25 +253,20 @@ def reconhecimentoALPR(plate_alpr):
 
 if __name__ == "__main__":
     q=queue.Queue()
+
     send_data_to_cloud = Send_to_cloud_Mqtt()
-    #tesseract_gray = os.getenv("TESSERACT_GRAY")
     tesseract_gray = 130
-    #scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
     scale_factor_cascade = 1.7
-    #camera_source = os.getenv("CAMERA_SOURCE")
     camera_source = 'rtsp://admin:128Parsecs!@192.168.15.85/Streaming/channels/101'
-    #time_out_send_plate = os.getenv("TIME_OUT_SEND_PLATE")
     time_out_send_plate = 5
-    #min_line_frame = os.getenv("MIN_LINE_FRAME")
     min_line_frame = 100
-    #max_line_frane = os.getenv("MAX_LINE_FRAME")
     max_line_frane = 900
     print('gray=', tesseract_gray)
     print('scale=', scale_factor_cascade)
     print('camerasource=', camera_source)
     print('time=', time_out_send_plate)
-    print('min=', min_line_frame)
-    print('max=', max_line_frane)
+    print('minLine=', min_line_frame)
+    print('maxLine=', max_line_frane)
     
     finalPlate = MostCommonChar()
     platesALPR = []
