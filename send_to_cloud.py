@@ -3,11 +3,17 @@ import time
 import json
 import os
 
-ip_mqtt = os.getenv("IP_MQTT")
+'''ip_mqtt = os.getenv("IP_MQTT")
 port_mqtt = os.getenv("PORT_MQTT")
 user_name_mqtt = os.getenv("USER_NAME_MQTT")
 password_mqtt = os.getenv("PASSWORD_MQTT")
-publish_topic = os.getenv("PUBLISH_TOPIC")
+publish_topic = os.getenv("PUBLISH_TOPIC")'''
+
+ip_mqtt = 'gwqa.revolog.com.br'
+port_mqtt = 1884
+user_name_mqtt = 'tecnologia'
+password_mqtt = '128Parsecs!'
+publish_topic = 'aperam/plate'
 
 print('ip=', ip_mqtt)
 print('port=', port_mqtt)

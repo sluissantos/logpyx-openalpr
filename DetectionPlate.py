@@ -253,16 +253,24 @@ def reconhecimentoALPR(plate_alpr):
 if __name__ == "__main__":
     q=queue.Queue()
     send_data_to_cloud = Send_to_cloud_Mqtt()
-    tesseract_gray = os.getenv("TESSERACT_GRAY")
-    scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
-    camera_source = os.getenv("CAMERA_SOURCE")
-    time_out_send_plate = os.getenv("TIME_OUT_SEND_PLATE")
-    min_line_frame = os.getenv("MIN_LINE_FRAME")
-    max_line_frane = os.getenv("MAX_LINE_FRAME")
+    #tesseract_gray = os.getenv("TESSERACT_GRAY")
+    tesseract_gray = 130
+    #scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
+    scale_factor_cascade = 1.7
+    #camera_source = os.getenv("CAMERA_SOURCE")
+    camera_source = 'rtsp://admin:128Parsecs!@192.168.15.85/Streaming/channels/101'
+    #time_out_send_plate = os.getenv("TIME_OUT_SEND_PLATE")
+    time_out_send_plate = 5
+    #min_line_frame = os.getenv("MIN_LINE_FRAME")
+    min_line_frame = 100
+    #max_line_frane = os.getenv("MAX_LINE_FRAME")
+    max_line_frane = 900
     print('gray=', tesseract_gray)
     print('scale=', scale_factor_cascade)
     print('camerasource=', camera_source)
     print('time=', time_out_send_plate)
+    print('min=', min_line_frame)
+    print('max=', max_line_frane)
     
     finalPlate = MostCommonChar()
     platesALPR = []
