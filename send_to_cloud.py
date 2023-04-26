@@ -1,17 +1,25 @@
 import paho.mqtt.client as mqtt
 import time
 import json
+import os
 
 class Send_to_cloud_Mqtt:
 
     def __init__(self):
-        self.broker_host = 'gwqa.revolog.com.br'
-        self.broker_port = 1884
-        self.username = 'tecnologia'
-        self.password = '128Parsecs!'
-        self.publish_topic = 'aperam/plate'
+        self.ip_mqtt = os.getenv("IP_MQTT")
+        self.port_mqtt = os.getenv("PORT_MQTT")
+        self.username_mqtt = os.getenv("USER_NAME_MQTT")
+        self.password_mqtt = os.getenv("PASSWORD_MQTT")
+        self.publish_topic = os.getenv("PUBLISH_TOPIC")
+
+        print('ip=', self.ip_mqtt)
+        print('port=', self.port_mqtt)
+        print('user=', self.username_mqtt)
+        print('pass=', self.password_mqtt)
+        print('publish=', self.publish_topic)
+
         self.client = mqtt.Client()
-        self.client.username_pw_set(self.username, self.password)
+        self.client.username_pw_set(self.username_mqtt, self.password_mqtt)
         self.client.connected_flag = False
         self.client.bad_connection_flag = False
         self.client.on_connect = self.on_connect
@@ -32,7 +40,7 @@ class Send_to_cloud_Mqtt:
     def connect(self):
         while True:
             try:
-                self.client.connect(self.broker_host, self.broker_port)
+                self.client.connect(self.ip_mqtt, int(self.port_mqtt))
                 self.client.loop_start()
                 while not self.client.connected_flag and not self.client.bad_connection_flag:
                     time.sleep(1)
