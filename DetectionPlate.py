@@ -228,7 +228,7 @@ def normCaracterPlateList(text):
 
 def reconhecimentoALPR(plate_alpr):
     try:
-        alpr = Alpr('br', '/home/openALPR/config/openalpr.defaults.conf', '/home/openALPR/runtime_data')
+        alpr = Alpr('br', '/home/logpyx-openalpr/config/openalpr.defaults.conf', '/home/logpyx-openalpr/runtime_data')
         if not alpr.is_loaded():
             print("Error loading OpenALPR")
         else:
@@ -279,7 +279,7 @@ if __name__ == "__main__":
         lenPlate = 9
     elif(plat == 'Windows'):
         lenPlate = 8
-    car_cascade = cv2.CascadeClassifier('/home/openALPR/runtime_data/region/br.xml')
+    car_cascade = cv2.CascadeClassifier('/home/logpyx-openalpr/runtime_data/region/br.xml')
     p1 = threading.Thread(target=Receive, args=(camera_source,))
     p2 = threading.Thread(target=findRectPlateCascade, args=(car_cascade,))
     p1.start()
