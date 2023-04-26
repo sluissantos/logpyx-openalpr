@@ -33,12 +33,14 @@ class Send_to_cloud_Mqtt:
             try:
                 self.client.connect(ip_mqtt, int(port_mqtt), 60)
                 self.client.loop_start()
+                print("connect_MQTT")
 
             except:
                 print("Fail connect to Cloud ")
                 self.connect_MQTT()
 
     def init_MQTT(self):
+        print("init_MQTT")
         self.client = mqtt.Client()
         self.client.on_connect = self.on_connect
         self.client.on_disconnect = self.on_disconnect
