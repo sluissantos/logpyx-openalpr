@@ -1,10 +1,7 @@
-import os
+import socket
 
-ip_mqtt = os.getenv("IP_MQTT")
-port_mqtt = os.getenv("PORT_MQTT")
+host = 'gwqa.revolog.com.br'
+port = 1884
 
-print('ip_mqtt=', ip_mqtt)
-print('type=', type(ip_mqtt))
-
-print('port_mqtt=', port_mqtt)
-print('type=', type(port_mqtt))
+addr_info = socket.getaddrinfo(host, port)
+print(addr_info)
