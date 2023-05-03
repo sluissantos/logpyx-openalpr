@@ -115,7 +115,7 @@ def findRectPlateCascade(car_cascade):
             frame = q.get()
             area = frame[int(min_line_frame):int(max_line_frane),:]
             area_printed = area
-            #cv2.imshow("area", area)
+            cv2.imshow("area", area)
             norm = np.zeros((800,800))
             norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
             gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)
@@ -146,7 +146,7 @@ def findRectPlateCascade(car_cascade):
                             print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
                             print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
                             print('PLACA FINAL = ', finalPlate.getMostCommonPlate())
-                            send_data_to_cloud.send_message_to_cloud(finalPlate.getMostCommonPlate())
+                            send_data_to_cloud.publish(finalPlate.getMostCommonPlate())
                             finalPlate.cleanPlate()          
 
         if cv2.waitKey(1) & 0xff == ord('q'):
@@ -254,7 +254,7 @@ def reconhecimentoALPR(plate_alpr):
 if __name__ == "__main__":
     q=queue.Queue()
     send_data_to_cloud = Send_to_cloud_Mqtt()
-    send_data_to_cloud.connect()
+
     tesseract_gray = os.getenv("TESSERACT_GRAY")
     scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
     camera_source = os.getenv("CAMERA_SOURCE")
