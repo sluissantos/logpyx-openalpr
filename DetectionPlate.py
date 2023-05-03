@@ -115,7 +115,7 @@ def findRectPlateCascade(car_cascade):
             frame = q.get()
             area = frame[int(min_line_frame):int(max_line_frane),:]
             area_printed = area
-            cv2.imshow("area", area)
+            #cv2.imshow("area", area)
             norm = np.zeros((800,800))
             norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
             gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)
