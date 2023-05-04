@@ -3,11 +3,11 @@ import cv2
 import pytesseract
 import numpy as np
 import platform
-from send_to_cloud import Send_to_cloud_Mqtt
 import queue
 import time
 import threading
 from openalpr import Alpr
+import mqtt_interface as mqtt_init
 
 class MostCommonChar():
     def __init__(self):
@@ -146,7 +146,7 @@ def findRectPlateCascade(car_cascade):
                             print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
                             print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
                             print('PLACA FINAL = ', finalPlate.getMostCommonPlate())
-                            send_data_to_cloud.publish(finalPlate.getMostCommonPlate())
+                            mqtt_init.publish(finalPlate.getMostCommonPlate())
                             finalPlate.cleanPlate()          
 
         if cv2.waitKey(1) & 0xff == ord('q'):
@@ -253,8 +253,7 @@ def reconhecimentoALPR(plate_alpr):
 
 if __name__ == "__main__":
     q=queue.Queue()
-    send_data_to_cloud = Send_to_cloud_Mqtt()
-
+    mqtt_init.publish('test')
     tesseract_gray = os.getenv("TESSERACT_GRAY")
     scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
     camera_source = os.getenv("CAMERA_SOURCE")

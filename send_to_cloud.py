@@ -7,17 +7,18 @@ import os
 class Send_to_cloud_Mqtt:
 
     def __init__(self):
-        self.send_mqtt = Mqtt_Interface()
-        self.send_mqtt.connect()
-        while self.send_mqtt.connect() is not True:
-            self.send_mqtt.connect()
+        mqtt_init = Mqtt_Interface()
+        mqtt_init.connect()
+        while mqtt_init.connect() is not True:
+            mqtt_init.connect()
+        s
 
-    def publish (self, message):
-        self.send_mqtt.send_message_to_cloud(message)
-        
-def init ():
-    test = Send_to_cloud_Mqtt()
+def create_mqtt ():
+    send_mqtt = Mqtt_Interface()
+    p1 = threading.Thread(target=send_mqtt)
+    p1.start()
 
 if __name__ == '__main__':
-    p1 = threading.Thread(target=init, args=())
+    test = Send_to_cloud_Mqtt()
+    p1 = threading.Thread(target=send, args=())
     p1.start()
