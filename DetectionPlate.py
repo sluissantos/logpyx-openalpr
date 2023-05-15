@@ -9,6 +9,7 @@ import threading
 from openalpr import Alpr
 import mqtt_interface as mqtt_init
 
+# Define para cada posição dos caracteres da placa, o caractere mais encontrado nas leitura.
 class MostCommonChar():
     def __init__(self):
         self.char0 = {}
@@ -19,7 +20,6 @@ class MostCommonChar():
         self.char5 = {}
         self.char6 = {}
         return
-
 
     def insertChar(self, plate):
         for i in range(len(plate)):
@@ -86,6 +86,7 @@ class MostCommonChar():
             return 1
         return 0
 
+# Redimenciona a imagem encontrada atraves do Cascade, normaliza, converte para cinza, binariza e desfoca. Função usada para tratar imagem de entrada para o Tesseract. 
 def preProcessamentoRoi(img_roi):
     # redmensiona a imagem da placa em 4x
     img = cv2.resize(img_roi, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
@@ -99,6 +100,7 @@ def preProcessamentoRoi(img_roi):
     img = cv2.GaussianBlur(img, (5, 5), 0)
     return img
 
+# Funcão para leitura e então armazenamento do frame no buffer da Fila.
 def Receive(source):
     cap = cv2.VideoCapture(source)
     while True:
@@ -109,31 +111,31 @@ def Receive(source):
             continue
         q.put(frame)
 
+# Uso do Cascade.
 def findRectPlateCascade(car_cascade):
     while True:
         if not q.empty():
             frame = q.get()
-            area = frame[int(min_line_frame):int(max_line_frane),:]
+            area = frame[int(min_line_frame):int(max_line_frane),:]# variáveis para limitar a "altura" do frame de entrada.
             area_printed = area
             #cv2.imshow("area", area)
             norm = np.zeros((800,800))
             norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
-            gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)# tratamentos iniciais para uso do Cascade
             cars = car_cascade.detectMultiScale(gray, float(scale_factor_cascade), 1, minSize = (5,5), maxSize = (500,500))
             if len(cars) != 0:
                 for (x, y, w, h) in cars:
                     area_printed = area
                     rect_plate = area[y:y + h, x:x + w]
                     plate_alpr = area[y:y + h, x:x + w]
-                    reconhecimentoALPR(plate_alpr)
-                    reconhecimentoOCR(preProcessamentoRoi(plate_alpr))
+                    reconhecimentoALPR(plate_alpr)# para as coordenadas encontradas, usar a biblioteca ALPR para detecção da placa.
+                    reconhecimentoOCR(preProcessamentoRoi(plate_alpr))# para as coordenadas encontradas, usar o Tesseract para detecção da placa.
                     #cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
                     encontrarRoiPlaca(rect_plate)
                     #cv2.imshow('area_printed', area_printed)
                     global tempo
                     tempo = 0
                     global flagContarTempo
-                    flagContarTempo = 1
                     flagContarTempo = 0
                     break
             else:
@@ -141,13 +143,14 @@ def findRectPlateCascade(car_cascade):
                     flagContarTempo = 1
                     tempo = int(time.time())
                 if(flagContarTempo == 1):
-                    if(int(time.time()) - tempo >= int(time_out_send_plate)):
+                    if(int(time.time()) - tempo >= int(time_out_send_plate)):# timeout da detecção. 
                         if(finalPlate.getChar()):
                             print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
                             print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
                             print('PLACA FINAL = ', finalPlate.getMostCommonPlate())
                             mqtt_init.publish(finalPlate.getMostCommonPlate())
                             finalPlate.cleanPlate()          
+                            tempo = 0.0
 
         if cv2.waitKey(1) & 0xff == ord('q'):
             break
@@ -155,9 +158,8 @@ def findRectPlateCascade(car_cascade):
     cv2.destroyAllWindows()
     return
 
-tempo = 0.0
-
-def reconnect(source):
+# Função recursiva para o caso em que a câmera IP tenha falha de conexão.
+def reconnect(source): 
     while True:
         print("Trying to reconnect camera...")
         cap = cv2.VideoCapture(source)
@@ -166,6 +168,7 @@ def reconnect(source):
             return cap
         time.sleep(1)
 
+# Tratamento da imagem encontrada pelo Cascade. Uso de técnica de detecção de contorno para obter o placa.
 def encontrarRoiPlaca(rect_plate):
     img = rect_plate
     cinza = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -174,7 +177,7 @@ def encontrarRoiPlaca(rect_plate):
     bin = cv2.resize(bin, None, fx=5, fy=5, interpolation=cv2.INTER_CUBIC)
     for c in contours:
         perimetro = cv2.arcLength(c, True)
-        if perimetro > 120 and perimetro < 400:
+        if perimetro > 120 and perimetro < 400: # Definição do perímetro mínimo e máximo dos contornos encontrados para minorar os falsos positivos.
             aprox = cv2.approxPolyDP(c, 0.03 * perimetro, True)
             if len(aprox) == 4:
                 (x1, y1, w1, h1) = cv2.boundingRect(c)
@@ -183,6 +186,7 @@ def encontrarRoiPlaca(rect_plate):
                 reconhecimentoOCR(preProcessamentoRoi(roi))
     return
     
+# Função Tesseract. 
 def reconhecimentoOCR(plate):
     config = r'-c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 --psm 6'
     text = list(pytesseract.image_to_string(plate, lang='eng', config=config))
@@ -194,6 +198,7 @@ def reconhecimentoOCR(plate):
 
     return 
     
+# Realiza as possíveis correções para cada posição de entrada dos caracteres. Se aparecer número onde é letra, define o valor provável, e vice-versa.
 def normCaracterPlateList(text):
     aux = None
     for i in range(len(text)):
@@ -226,9 +231,10 @@ def normCaracterPlateList(text):
     aux = ''.join(text)
     return 1, aux
 
+# Função ALPR.
 def reconhecimentoALPR(plate_alpr):
     try:
-        alpr = Alpr('br', '/home/logpyx-openalpr/config/openalpr.defaults.conf', '/home/logpyx-openalpr/runtime_data')
+        alpr = Alpr('br', '/home/logpyx-openalpr/config/openalpr.defaults.conf', '/home/logpyx-openalpr/runtime_data')# parâmetros obrigatórios para chamamento da função ALPR.
         if not alpr.is_loaded():
             print("Error loading OpenALPR")
         else:
@@ -250,9 +256,10 @@ def reconhecimentoALPR(plate_alpr):
             alpr.unload()
     return
 
-
+#Init
 if __name__ == "__main__":
     q=queue.Queue()
+    # variáveis globais atribúidas a partir das variáveis de ambiente inicializadas no sistema.
     mqtt_init.publish('test')
     tesseract_gray = os.getenv("TESSERACT_GRAY")
     scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
@@ -280,6 +287,7 @@ if __name__ == "__main__":
     elif(plat == 'Windows'):
         lenPlate = 8
     car_cascade = cv2.CascadeClassifier('/home/logpyx-openalpr/runtime_data/region/br.xml')
+    # definição e start das threads
     p1 = threading.Thread(target=Receive, args=(camera_source,))
     p2 = threading.Thread(target=findRectPlateCascade, args=(car_cascade,))
     p1.start()

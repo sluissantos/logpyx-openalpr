@@ -3,7 +3,7 @@ import time
 import json
 import os
 
-# Variáveis globais
+# variáveis globais atribúidas à partir das variáveis de ambiente inicializadas no sistema.
 ip_mqtt = os.getenv("IP_MQTT")
 port_mqtt = os.getenv("PORT_MQTT")
 username_mqtt = os.getenv("USER_NAME_MQTT")
@@ -12,6 +12,7 @@ publish_topic = os.getenv("PUBLISH_TOPIC")
 
 client = mqtt.Client()
 
+# Define configurações iniciais
 def setup():
     print('ip=', ip_mqtt)
     print('port=', port_mqtt)
@@ -64,8 +65,6 @@ def send_message_to_cloud(plate):
     try:
         if (client.connected_flag == True):
             result = client.publish(publish_topic, json_string, 2)
-            #print('result[0]=', result[0])
-            #print('resutl[1]=', result[1])
     except:
         print("Failed to publish message.")
     del json_string
@@ -79,7 +78,6 @@ def publish(plate):
     setup()
     send_message_to_cloud(plate)
     cleanup()
-
 
 if __name__ == '__main__':
     publish('test')
