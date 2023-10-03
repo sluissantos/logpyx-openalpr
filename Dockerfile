@@ -19,18 +19,17 @@ RUN apt-get update && \
     iproute2 \
     v4l-utils \
     --reinstall libxcb-xinerama0 \
-    iputils-ping \
-    ffmpeg
+    iputils-ping 
 
 
 WORKDIR /home
-RUN git clone https://github.com/sluissantos/logpyx-openalpr.git /home/logpyx-openalpr
+COPY git clone git@bitbucket.org:logpyx/openalpr_tesseract.git /home/logpyx-openalpr
 
 WORKDIR /home/logpyx-openalpr/openalpr/src
 RUN mkdir build
 
 WORKDIR /home/logpyx-openalpr/openalpr/src/build
-RUN cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_INSTALL_SYSCONFDIR:PATH=/etc ..
+RUN cmake -DCMAKE_INSTALL_PREFIX:home/logpyx-openalpr/openalpr/usr -DCMAKE_INSTALL_SYSCONFDIR:home/logpyx-openalpr/openalpr/etc ..
 RUN make && make install
 RUN rm -rf /usr/local/lib/python3.5/dist-packages/openalpr*
 
@@ -46,6 +45,7 @@ RUN pip install paho-mqtt
 #ENV USER_NAME_MQTT=tecnologia
 #ENV PASSWORD_MQTT=128Parsecs!
 #ENV PUBLISH_TOPIC=aperam/plate
+#ENV PUBLISH_TOPIC_STATUS=aperam/status
 #ENV TESSERACT_GRAY=130
 #ENV SCALE_FACTOR_CASCADE=1.7
 #ENV CAMERA_SOURCE=rtsp://admin:128Parsecs!@192.168.15.85/Streaming/channels/101

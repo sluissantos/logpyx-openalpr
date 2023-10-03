@@ -118,7 +118,7 @@ def findRectPlateCascade(car_cascade):
             frame = q.get()
             area = frame[int(min_line_frame):int(max_line_frane),:]# variáveis para limitar a "altura" do frame de entrada.
             area_printed = area
-            #cv2.imshow("area", area)
+            cv2.imshow("area", area)
             norm = np.zeros((800,800))
             norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
             gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)# tratamentos iniciais para uso do Cascade
@@ -130,9 +130,9 @@ def findRectPlateCascade(car_cascade):
                     plate_alpr = area[y:y + h, x:x + w]
                     reconhecimentoALPR(plate_alpr)# para as coordenadas encontradas, usar a biblioteca ALPR para detecção da placa.
                     reconhecimentoOCR(preProcessamentoRoi(plate_alpr))# para as coordenadas encontradas, usar o Tesseract para detecção da placa.
-                    #cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
+                    cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
                     encontrarRoiPlaca(rect_plate)
-                    #cv2.imshow('area_printed', area_printed)
+                    cv2.imshow('area_printed', area_printed)
                     global tempo
                     tempo = 0
                     global flagContarTempo
@@ -148,7 +148,7 @@ def findRectPlateCascade(car_cascade):
                             print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
                             print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
                             print('PLACA FINAL = ', finalPlate.getMostCommonPlate())
-                            mqtt_init.publish(finalPlate.getMostCommonPlate())
+                            mqtt_init.publish_plate(finalPlate.getMostCommonPlate())
                             finalPlate.cleanPlate()          
                             tempo = 0.0
 
@@ -160,11 +160,14 @@ def findRectPlateCascade(car_cascade):
 
 # Função recursiva para o caso em que a câmera IP tenha falha de conexão.
 def reconnect(source): 
+    global status
     while True:
         print("Trying to reconnect camera...")
         cap = cv2.VideoCapture(source)
+        status = False
         if cap.isOpened():
             print("Camera reconnected!")
+            status = True
             return cap
         time.sleep(1)
 
@@ -256,11 +259,26 @@ def reconhecimentoALPR(plate_alpr):
             alpr.unload()
     return
 
+def publish_periodically():
+    global status
+    while True:
+        mqtt_init.publish_status(camera_source, status)
+        time.sleep(30)  # Aguarda 30 segundos
+
 #Init
 if __name__ == "__main__":
     q=queue.Queue()
     # variáveis globais atribúidas a partir das variáveis de ambiente inicializadas no sistema.
-    mqtt_init.publish('test')
+    '''
+    tesseract_gray = "130"
+    scale_factor_cascade = "1.7"
+    camera_source = "rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101"
+    time_out_send_plate = "5"
+    min_line_frame = 200
+    max_line_frane = 900
+    status = True
+    '''
+    
     tesseract_gray = os.getenv("TESSERACT_GRAY")
     scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
     camera_source = os.getenv("CAMERA_SOURCE")
@@ -268,6 +286,7 @@ if __name__ == "__main__":
     min_line_frame = os.getenv("MIN_LINE_FRAME")
     max_line_frane = os.getenv("MAX_LINE_FRAME")
 
+    mqtt_init.publish_plate('test')
     print('gray=', tesseract_gray)
     print('scale=', scale_factor_cascade)
     print('camerasource=', camera_source)
@@ -287,8 +306,12 @@ if __name__ == "__main__":
     elif(plat == 'Windows'):
         lenPlate = 8
     car_cascade = cv2.CascadeClassifier('/home/logpyx-openalpr/runtime_data/region/br.xml')
+
     # definição e start das threads
     p1 = threading.Thread(target=Receive, args=(camera_source,))
     p2 = threading.Thread(target=findRectPlateCascade, args=(car_cascade,))
+    p3 = threading.Thread(target=publish_periodically)
+
     p1.start()
     p2.start()
+    p3.start()

@@ -51,7 +51,7 @@ Obs: para cada marca, existe uma forma diferente de definir o URL para obteção
 `TIME_OUT_SEND_PLATE=5`
 
 ``"MIN_LINE_FRAME"` e `"MAX_LINE_FRAME"`` -  Esses valores definem o mínimo e máximo de pixels que serão usados pelo Cascade. Isso "corta" o frame em certo ponto. Quanto menor o tamanho da imagem, mais rápido será o algoritmo de procura. O ideal é que defina na imagem um padrão de onde as placas podem aparecer e minorar o máximo possível o tamanho da imagem:
-`MIN_LINE_FRAME=100`
+`MIN_LINE_FRAME=200`
 `MAX_LINE_FRAME=900`
 
 
