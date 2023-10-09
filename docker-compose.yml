@@ -16,4 +16,4 @@ services:
       TIME_OUT_SEND_PLATE: 5
       MIN_LINE_FRAME: 200
       MAX_LINE_FRAME: 900
-      MAX_PLATES: 1000
+      MAX_PLATES: 100

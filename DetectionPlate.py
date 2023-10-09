@@ -138,7 +138,7 @@ def findRectPlateCascade(id, car_cascade):
             gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)# tratamentos iniciais para uso do Cascade
             cars = car_cascade.detectMultiScale(gray, float(scale_factor_cascade), 1, minSize = (5,5), maxSize = (500,500))
             if len(cars) != 0:
-                if((len(platesALPR)+len(platesOCR))>100):
+                if((len(platesALPR)+len(platesOCR))>int(max_plates)):
                     print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
                     print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
                     plate = finalPlate.getMostCommonPlate()
@@ -178,8 +178,6 @@ def findRectPlateCascade(id, car_cascade):
                     tempo = int(time.time())
                 if(flagContarTempo == 1):
                     if(int(time.time()) - tempo >= int(time_out_send_plate)):# timeout da detecção. 
-                        if(len(platesALPR)>int(max_plates)):
-                            print('maior que 1000')
                         if(finalPlate.getChar()):
                             print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
                             print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
@@ -315,14 +313,14 @@ if __name__ == "__main__":
     status = True
 
     # variáveis globais atribúidas a partir das variáveis de ambiente inicializadas no sistema.
-
+    '''
     tesseract_gray = "130"
     scale_factor_cascade = "1.7"
     camera_source = "rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101"
     time_out_send_plate = "5"
     min_line_frame = '200'
     max_line_frane = '900'
-    max_plates = '1000'
+    max_plates = '100'
     '''
     tesseract_gray = os.getenv("TESSERACT_GRAY")
     scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
@@ -331,7 +329,7 @@ if __name__ == "__main__":
     min_line_frame = os.getenv("MIN_LINE_FRAME")
     max_line_frane = os.getenv("MAX_LINE_FRAME")
     max_plate = os.getenv("MAX_PLATES")
-    '''
+
     print('\ngray=', tesseract_gray)
     print('scale=', scale_factor_cascade)
     print('camerasource=', camera_source)
