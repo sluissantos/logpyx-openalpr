@@ -2,10 +2,14 @@ import paho.mqtt.client as mqtt
 import time
 import json
 import os
-'''
+
+MAX_RECONNECT_ATTEMPTS = 5
+
 # variáveis globais atribúidas à partir das variáveis de ambiente inicializadas no sistema.
-ip_mqtt = "gwqa.revolog.com.br"
-port_mqtt = "1884"
+#ip_mqtt = "gwqa.revolog.com.br"
+'''
+ip_mqtt = "10.50.239.100"
+port_mqtt = "1883"
 username_mqtt = "tecnologia"
 password_mqtt = "128Parsecs!"
 publish_topic = "aperam/plate"
@@ -19,16 +23,18 @@ password_mqtt = os.getenv("PASSWORD_MQTT")
 publish_topic = os.getenv("PUBLISH_TOPIC")
 publish_topic_status = os.getenv("PUBLISH_TOPIC_STATUS")
 
+
+print('ip=', ip_mqtt)
+print('port=', port_mqtt)
+print('user=', username_mqtt)
+print('pass=', password_mqtt)
+print('publish=', publish_topic)
+print('publish_status=', publish_topic_status)
+
 client = mqtt.Client()
 
 # Define configurações iniciais
 def setup():
-    print('ip=', ip_mqtt)
-    print('port=', port_mqtt)
-    print('user=', username_mqtt)
-    print('pass=', password_mqtt)
-    print('publish=', publish_topic)
-    print('publish_status=', publish_topic_status)
     client.username_pw_set(username_mqtt, password_mqtt)
     client.connected_flag = False
     client.bad_connection_flag = False
@@ -38,7 +44,7 @@ def setup():
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        print("Connected successfully.")
+        #print("Connected successfully.")
         client.connected_flag = True
     else:
         print("Connection failed with code %d." % rc)
@@ -61,22 +67,25 @@ def connect():
 
         except:
             client.bad_connection_flag = True
-
-        client.disconnect()
+            client.disconnect()
+            
         print("Connection failed. Retrying in 5 seconds.")
         time.sleep(5)
 
-def send_message_plate(plate):
-    json_data = {}
-    json_data["plate"] = plate
+def send_message_plate(id, plate):
+    json_data = {
+        "id" : id,
+        "plate" : plate
+    }
     json_string = json.dumps(json_data)
     print(json_string)
-    print("\n")
     try:
-        if (client.connected_flag == True):
+        if client.connected_flag:
             result = client.publish(publish_topic, json_string, 2)
-    except:
-        print("Failed to publish message.")
+            if result.rc != mqtt.MQTT_ERR_SUCCESS:
+                print("Failed to publish message.")
+    except Exception as e:
+        print("Failed to publish message:", str(e))
     del json_string
     json_data.clear()
 
@@ -102,9 +111,10 @@ def cleanup():
     client.loop_stop()
     client.disconnect()
 
-def publish_plate(plate):
+def publish_plate(id, plate):
     setup()
-    send_message_plate(plate)
+    if(plate is not None):
+        send_message_plate(id, plate)
     cleanup()
     
 def publish_status(source, status):
@@ -112,5 +122,10 @@ def publish_status(source, status):
     send_message_status(source, status)
     cleanup()
 
+def reconnect():
+    if not client.is_connected():
+        setup()
+    time.sleep(5) 
+
 if __name__ == '__main__':
-    publish_plate('test')
+    publish_plate('test','test')

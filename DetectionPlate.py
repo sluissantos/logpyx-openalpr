@@ -11,6 +11,7 @@ import mqtt_interface as mqtt_init
 
 # Define para cada posição dos caracteres da placa, o caractere mais encontrado nas leitura.
 class MostCommonChar():
+    lastFinalPlate = None
     def __init__(self):
         self.char0 = {}
         self.char1 = {}
@@ -69,6 +70,9 @@ class MostCommonChar():
         c5 = max(self.char5, key=self.char5.get)
         c6 = max(self.char6, key=self.char6.get)
         finalPlate = c0+c1+c2+c3+c4+c5+c6
+        if(self.lastFinalPlate == finalPlate):
+            return None
+        self.lastFinalPlate = finalPlate
         return finalPlate
     
     def cleanPlate(self):
@@ -102,8 +106,9 @@ def preProcessamentoRoi(img_roi):
 
 # Funcão para leitura e então armazenamento do frame no buffer da Fila.
 def Receive(source):
+    global terminate_threads
     cap = cv2.VideoCapture(source)
-    while True:
+    while terminate_threads:
         ret, frame = cap.read()
         if not ret:
             cap.release()
@@ -112,8 +117,17 @@ def Receive(source):
         q.put(frame)
 
 # Uso do Cascade.
-def findRectPlateCascade(car_cascade):
-    while True:
+def findRectPlateCascade(id, car_cascade):
+    global tempo
+    global flagContarTempo
+    global platesALPR
+    global platesOCR
+    global finalPlate
+    global terminate_threads
+    global p1
+
+    while terminate_threads:
+        tempo = int(time.time())
         if not q.empty():
             frame = q.get()
             area = frame[int(min_line_frame):int(max_line_frane),:]# variáveis para limitar a "altura" do frame de entrada.
@@ -124,33 +138,58 @@ def findRectPlateCascade(car_cascade):
             gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)# tratamentos iniciais para uso do Cascade
             cars = car_cascade.detectMultiScale(gray, float(scale_factor_cascade), 1, minSize = (5,5), maxSize = (500,500))
             if len(cars) != 0:
-                for (x, y, w, h) in cars:
-                    area_printed = area
-                    rect_plate = area[y:y + h, x:x + w]
-                    plate_alpr = area[y:y + h, x:x + w]
-                    reconhecimentoALPR(plate_alpr)# para as coordenadas encontradas, usar a biblioteca ALPR para detecção da placa.
-                    reconhecimentoOCR(preProcessamentoRoi(plate_alpr))# para as coordenadas encontradas, usar o Tesseract para detecção da placa.
-                    cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
-                    encontrarRoiPlaca(rect_plate)
-                    cv2.imshow('area_printed', area_printed)
-                    global tempo
-                    tempo = 0
-                    global flagContarTempo
-                    flagContarTempo = 0
-                    break
+                if((len(platesALPR)+len(platesOCR))>100):
+                    print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
+                    print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
+                    plate = finalPlate.getMostCommonPlate()
+                    print('PLACA FINAL = ', plate)
+                    mqtt_init.publish_plate(id, plate)
+                    finalPlate.cleanPlate()          
+                    tempo = 0.0
+                    platesALPR = []
+                    platesOCR = []
+                    cars = []
+                    terminate_threads = False
+                    while not q.empty():
+                        q.get()
+                    p1.join()
+                    print('tempo total = ', (int(time.time())-tempo))
+                    time.sleep(10)
+                    terminate_threads = True
+                    p1 = threading.Thread(target=Receive, args=(camera_source,))
+                    p1.start()
+
+                else:
+                    for (x, y, w, h) in cars:
+                        area_printed = area
+                        rect_plate = area[y:y + h, x:x + w]
+                        plate_alpr = area[y:y + h, x:x + w]
+                        reconhecimentoALPR(plate_alpr)# para as coordenadas encontradas, usar a biblioteca ALPR para detecção da placa.
+                        reconhecimentoOCR(preProcessamentoRoi(plate_alpr))# para as coordenadas encontradas, usar o Tesseract para detecção da placa.
+                        cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
+                        encontrarRoiPlaca(rect_plate)
+                        cv2.imshow('area_printed', area_printed)
+                        tempo = 0
+                        flagContarTempo = 0
+                        break
             else:
                 if(flagContarTempo == 0):
                     flagContarTempo = 1
                     tempo = int(time.time())
                 if(flagContarTempo == 1):
                     if(int(time.time()) - tempo >= int(time_out_send_plate)):# timeout da detecção. 
+                        if(len(platesALPR)>int(max_plates)):
+                            print('maior que 1000')
                         if(finalPlate.getChar()):
                             print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
                             print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
-                            print('PLACA FINAL = ', finalPlate.getMostCommonPlate())
-                            mqtt_init.publish_plate(finalPlate.getMostCommonPlate())
+                            plate = finalPlate.getMostCommonPlate()
+                            print('PLACA FINAL = ', plate)
+                            mqtt_init.publish_plate(id, plate)
                             finalPlate.cleanPlate()          
                             tempo = 0.0
+                            platesALPR = []
+                            platesOCR = []
 
         if cv2.waitKey(1) & 0xff == ord('q'):
             break
@@ -259,35 +298,41 @@ def reconhecimentoALPR(plate_alpr):
             alpr.unload()
     return
 
-def publish_periodically():
+def publish_periodically(id):
     global status
     while True:
-        mqtt_init.publish_status(camera_source, status)
+        mqtt_init.publish_status(id, status)
         time.sleep(30)  # Aguarda 30 segundos
 
+def check_mqtt_connection():
+    while True:
+        mqtt_init.reconnect()
 #Init
 if __name__ == "__main__":
     q=queue.Queue()
+
+    terminate_threads = True
+    status = True
+
     # variáveis globais atribúidas a partir das variáveis de ambiente inicializadas no sistema.
     '''
     tesseract_gray = "130"
     scale_factor_cascade = "1.7"
     camera_source = "rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101"
     time_out_send_plate = "5"
-    min_line_frame = 200
-    max_line_frane = 900
-    status = True
+    min_line_frame = '200'
+    max_line_frane = '900'
+    max_plates = '1000'
     '''
-    
     tesseract_gray = os.getenv("TESSERACT_GRAY")
     scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
     camera_source = os.getenv("CAMERA_SOURCE")
     time_out_send_plate = os.getenv("TIME_OUT_SEND_PLATE")
     min_line_frame = os.getenv("MIN_LINE_FRAME")
     max_line_frane = os.getenv("MAX_LINE_FRAME")
+    max_plate = os.getenv("MAX_PLATES")
 
-    mqtt_init.publish_plate('test')
-    print('gray=', tesseract_gray)
+    print('\ngray=', tesseract_gray)
     print('scale=', scale_factor_cascade)
     print('camerasource=', camera_source)
     print('time=', time_out_send_plate)
@@ -300,6 +345,9 @@ if __name__ == "__main__":
     lenPlate = None
     tempo = None
     flagContarTempo = None
+
+    ident = camera_source.split("@")[1]
+
     plat = platform.system()
     if(plat == 'Linux'):
         lenPlate = 9
@@ -308,10 +356,12 @@ if __name__ == "__main__":
     car_cascade = cv2.CascadeClassifier('/home/logpyx-openalpr/runtime_data/region/br.xml')
 
     # definição e start das threads
+    p0 = threading.Thread(target=check_mqtt_connection)
     p1 = threading.Thread(target=Receive, args=(camera_source,))
-    p2 = threading.Thread(target=findRectPlateCascade, args=(car_cascade,))
-    p3 = threading.Thread(target=publish_periodically)
+    p2 = threading.Thread(target=findRectPlateCascade, args=(ident, car_cascade))
+    p3 = threading.Thread(target=publish_periodically, args=(ident,))
 
+    p0.start()
     p1.start()
     p2.start()
     p3.start()

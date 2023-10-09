@@ -4,7 +4,7 @@ services:
   detectionplate:
     image: "logpyx/aperam:1.0"
     environment:
-      IP_MQTT: gwqa.revolog.com.br
+      IP_MQTT: 10.50.239.100
       PORT_MQTT: 1884
       USER_NAME_MQTT: tecnologia
       PASSWORD_MQTT: 128Parsecs!
@@ -16,3 +16,4 @@ services:
       TIME_OUT_SEND_PLATE: 5
       MIN_LINE_FRAME: 200
       MAX_LINE_FRAME: 900
+      MAX_PLATES: 1000

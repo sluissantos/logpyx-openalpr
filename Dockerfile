@@ -23,7 +23,7 @@ RUN apt-get update && \
 
 
 WORKDIR /home
-COPY git clone git@bitbucket.org:logpyx/openalpr_tesseract.git /home/logpyx-openalpr
+RUN git clone git@bitbucket.org:logpyx/openalpr_tesseract.git /home/logpyx-openalpr
 
 WORKDIR /home/logpyx-openalpr/openalpr/src
 RUN mkdir build
