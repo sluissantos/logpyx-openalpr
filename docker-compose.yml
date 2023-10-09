@@ -5,7 +5,7 @@ services:
     image: "logpyx/aperam:1.0"
     environment:
       IP_MQTT: 10.50.239.100
-      PORT_MQTT: 1884
+      PORT_MQTT: 1883
       USER_NAME_MQTT: tecnologia
       PASSWORD_MQTT: 128Parsecs!
       PUBLISH_TOPIC: aperam/plate
