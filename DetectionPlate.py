@@ -315,7 +315,7 @@ if __name__ == "__main__":
     status = True
 
     # variáveis globais atribúidas a partir das variáveis de ambiente inicializadas no sistema.
-    '''
+
     tesseract_gray = "130"
     scale_factor_cascade = "1.7"
     camera_source = "rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101"
@@ -331,7 +331,7 @@ if __name__ == "__main__":
     min_line_frame = os.getenv("MIN_LINE_FRAME")
     max_line_frane = os.getenv("MAX_LINE_FRAME")
     max_plate = os.getenv("MAX_PLATES")
-
+    '''
     print('\ngray=', tesseract_gray)
     print('scale=', scale_factor_cascade)
     print('camerasource=', camera_source)

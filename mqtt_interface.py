@@ -7,7 +7,7 @@ MAX_RECONNECT_ATTEMPTS = 5
 
 # variáveis globais atribúidas à partir das variáveis de ambiente inicializadas no sistema.
 #ip_mqtt = "gwqa.revolog.com.br"
-'''
+
 ip_mqtt = "10.50.239.100"
 port_mqtt = "1883"
 username_mqtt = "tecnologia"
@@ -22,7 +22,7 @@ username_mqtt = os.getenv("USER_NAME_MQTT")
 password_mqtt = os.getenv("PASSWORD_MQTT")
 publish_topic = os.getenv("PUBLISH_TOPIC")
 publish_topic_status = os.getenv("PUBLISH_TOPIC_STATUS")
-
+'''
 
 print('ip=', ip_mqtt)
 print('port=', port_mqtt)
