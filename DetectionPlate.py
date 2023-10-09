@@ -132,7 +132,7 @@ def findRectPlateCascade(id, car_cascade):
             frame = q.get()
             area = frame[int(min_line_frame):int(max_line_frane),:]# variáveis para limitar a "altura" do frame de entrada.
             area_printed = area
-            cv2.imshow("area", area)
+            #cv2.imshow("area", area)
             norm = np.zeros((800,800))
             norm_image = cv2.normalize(area,norm,0,255,cv2.NORM_MINMAX)
             gray = cv2.cvtColor(norm_image, cv2.COLOR_BGR2GRAY)# tratamentos iniciais para uso do Cascade
@@ -168,7 +168,7 @@ def findRectPlateCascade(id, car_cascade):
                         reconhecimentoOCR(preProcessamentoRoi(plate_alpr))# para as coordenadas encontradas, usar o Tesseract para detecção da placa.
                         cv2.rectangle(area_printed, (x, y), (x + w, y + h), (0, 0, 255), 1)
                         encontrarRoiPlaca(rect_plate)
-                        cv2.imshow('area_printed', area_printed)
+                        #cv2.imshow('area_printed', area_printed)
                         tempo = 0
                         flagContarTempo = 0
                         break
@@ -189,8 +189,8 @@ def findRectPlateCascade(id, car_cascade):
                             platesALPR = []
                             platesOCR = []
 
-        if cv2.waitKey(1) & 0xff == ord('q'):
-            break
+        #if cv2.waitKey(1) & 0xff == ord('q'):
+        #    break
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     return
@@ -307,6 +307,7 @@ def check_mqtt_connection():
         mqtt_init.reconnect()
 #Init
 if __name__ == "__main__":
+    os.environ['QT_QPA_PLATFORM'] = 'offscreen'
     q=queue.Queue()
 
     terminate_threads = True
@@ -328,7 +329,7 @@ if __name__ == "__main__":
     time_out_send_plate = os.getenv("TIME_OUT_SEND_PLATE")
     min_line_frame = os.getenv("MIN_LINE_FRAME")
     max_line_frane = os.getenv("MAX_LINE_FRAME")
-    max_plate = os.getenv("MAX_PLATES")
+    max_plates = os.getenv("MAX_PLATES")
 
     print('\ngray=', tesseract_gray)
     print('scale=', scale_factor_cascade)

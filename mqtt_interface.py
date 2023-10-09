@@ -14,7 +14,6 @@ username_mqtt = "tecnologia"
 password_mqtt = "128Parsecs!"
 publish_topic = "aperam/plate"
 publish_topic_status = "aperam/status"
-
 '''
 ip_mqtt = os.getenv("IP_MQTT")
 port_mqtt = os.getenv("PORT_MQTT")
