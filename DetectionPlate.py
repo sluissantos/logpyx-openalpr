@@ -127,7 +127,6 @@ def findRectPlateCascade(id, car_cascade):
     global p1
 
     while terminate_threads:
-        tempo = int(time.time())
         if not q.empty():
             frame = q.get()
             area = frame[int(min_line_frame):int(max_line_frane),:]# variáveis para limitar a "altura" do frame de entrada.
@@ -184,10 +183,26 @@ def findRectPlateCascade(id, car_cascade):
                             plate = finalPlate.getMostCommonPlate()
                             print('PLACA FINAL = ', plate)
                             mqtt_init.publish_plate(id, plate)
-                            finalPlate.cleanPlate()          
+                            finalPlate.cleanPlate()         
                             tempo = 0.0
                             platesALPR = []
                             platesOCR = []
+        else:
+            if(flagContarTempo == 0):
+                flagContarTempo = 1
+                tempo = int(time.time())
+            if(flagContarTempo == 1):
+                if(int(time.time()) - tempo >= int(time_out_send_plate)):# timeout da detecção. 
+                    if(finalPlate.getChar()):
+                        print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
+                        print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
+                        plate = finalPlate.getMostCommonPlate()
+                        print('PLACA FINAL = ', plate)
+                        mqtt_init.publish_plate(id, plate)
+                        finalPlate.cleanPlate()          
+                        tempo = 0.0
+                        platesALPR = []
+                        platesOCR = []
 
         #if cv2.waitKey(1) & 0xff == ord('q'):
         #    break
@@ -314,9 +329,9 @@ if __name__ == "__main__":
     status = True
 
     # variáveis globais atribúidas a partir das variáveis de ambiente inicializadas no sistema.
-    '''
+
     tesseract_gray = "130"
-    scale_factor_cascade = "1.7"
+    scale_factor_cascade = "2.0"
     camera_source = "rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101"
     time_out_send_plate = "5"
     min_line_frame = '200'
@@ -330,7 +345,7 @@ if __name__ == "__main__":
     min_line_frame = os.getenv("MIN_LINE_FRAME")
     max_line_frane = os.getenv("MAX_LINE_FRAME")
     max_plates = os.getenv("MAX_PLATES")
-
+    '''
     print('\ngray=', tesseract_gray)
     print('scale=', scale_factor_cascade)
     print('camerasource=', camera_source)
@@ -342,7 +357,7 @@ if __name__ == "__main__":
     platesALPR = []
     platesOCR = []
     lenPlate = None
-    tempo = None
+    tempo = 0
     flagContarTempo = None
 
     ident = camera_source.split("@")[1]
