@@ -11,7 +11,7 @@ services:
       PUBLISH_TOPIC: aperam/plate
       PUBLISH_TOPIC_STATUS: aperam/status
       TESSERACT_GRAY: 130
-      SCALE_FACTOR_CASCADE: 1.7
+      SCALE_FACTOR_CASCADE: 1.1
       CAMERA_SOURCE: rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101cv2.
       TIME_OUT_SEND_PLATE: 5
       MIN_LINE_FRAME: 200
@@ -19,4 +19,5 @@ services:
       MAX_PLATES: 100
       FRAME_STEP: 5
       TIME_BETWEEN_READINGS: 10
+    user: root
     cpus: 1

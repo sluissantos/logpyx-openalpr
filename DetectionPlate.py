@@ -9,10 +9,6 @@ import threading
 from openalpr import Alpr
 import mqtt_interface as mqtt_init
 
-
-# Define a prioridade máxima (valor -20)
-os.nice(-20)
-
 # Define para cada posição dos caracteres da placa, o caractere mais encontrado nas leitura.
 class MostCommonChar():
     def __init__(self):
@@ -307,8 +303,11 @@ def check_mqtt_connection():
 
 #Init
 if __name__ == "__main__":
+    if os.geteuid() == 0:
+        os.nice(-20)
+        print('User priority')
+
     q=queue.Queue()
-    # variáveis globais atribúidas a partir das variáveis de ambiente inicializadas no sistema.
 
     try:
         script_directory = os.path.dirname(os.path.abspath(__file__))
