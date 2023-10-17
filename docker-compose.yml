@@ -19,5 +19,4 @@ services:
       MAX_PLATES: 100
       FRAME_STEP: 5
       TIME_BETWEEN_READINGS: 10
-    user: root
     cpus: 1

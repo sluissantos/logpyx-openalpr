@@ -134,7 +134,7 @@ def findRectPlateCascade(ident, car_cascade):
     last_plate = None
     while True:
         if not q.empty():
-            if ((int(time.time()) - tempo >= int(time_out_send_plate)) or ((len(platesALPR) + len(platesOCR)) > max_plates)):
+            if ((int(time.time()) - int(tempo) >= int(time_out_send_plate)) or ((len(platesALPR) + len(platesOCR)) > int(max_plates))):
                 if finalPlate.getChar():
                     print('Plates encontrados por ALPR = {} resultados.\n'.format(len(platesALPR)), end='')
                     print('Plates encontrados por OCR = {} resultados.\n'.format(len(platesOCR)), end='')
