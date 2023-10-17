@@ -3,8 +3,6 @@ import time
 import json
 import os
 
-MAX_RECONNECT_ATTEMPTS = 5
-
 # variáveis globais atribúidas à partir das variáveis de ambiente inicializadas no sistema.
 #ip_mqtt = "gwqa.revolog.com.br"
 '''

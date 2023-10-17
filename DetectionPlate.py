@@ -303,10 +303,11 @@ def check_mqtt_connection():
 
 #Init
 if __name__ == "__main__":
+    '''
     if os.geteuid() == 0:
         os.nice(-20)
         print('User priority')
-
+    '''
     q=queue.Queue()
 
     try:
