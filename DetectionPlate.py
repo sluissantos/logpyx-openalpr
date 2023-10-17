@@ -339,7 +339,7 @@ if __name__ == "__main__":
     max_line_frane = os.getenv("MAX_LINE_FRAME")
     max_plates = os.getenv("MAX_PLATES")    
     frame_step = os.getenv("FRAME_STEP")
-    time_between_readings = os.getenv("time_between_readings")
+    time_between_readings = os.getenv("TIME_BETWEEN_READINGS")
 
     print('tesseract_gray=', tesseract_gray)
     print('scale_factor_cascade=', scale_factor_cascade)
