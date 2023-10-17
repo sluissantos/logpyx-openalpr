@@ -17,3 +17,6 @@ services:
       MIN_LINE_FRAME: 200
       MAX_LINE_FRAME: 900
       MAX_PLATES: 100
+      FRAME_STEP: 5
+      TIME_BETWEEN_READINGS: 10
+    cpus: 1
