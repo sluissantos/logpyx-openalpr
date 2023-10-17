@@ -16,6 +16,8 @@ sudo rm -rf /usr/local/lib/python3.5/dist-packages/openalpr*
 cd /home/logpyx-openalpr/openalpr/src/bindings/python/
 sudo python3 setup.py install 
 
-sudo pip install opencv-python
+RUN pip install opencv-python-headless
+pip install opencv-python
+pip install opencv-contrib-python
 sudo pip install pytesseract
 sudo pip install paho-mqtt

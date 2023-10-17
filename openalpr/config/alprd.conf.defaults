@@ -29,4 +29,3 @@ store_plates_location = /var/lib/openalpr/plateimages/
 ; upload address is the destination to POST to
 upload_data = 0
 upload_address = http://localhost:9000/push/
-
