@@ -12,7 +12,7 @@ services:
       PUBLISH_TOPIC_STATUS: aperam/status
       TESSERACT_GRAY: 130
       SCALE_FACTOR_CASCADE: 1.1
-      CAMERA_SOURCE: rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101cv2.
+      CAMERA_SOURCE: rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101
       TIME_OUT_SEND_PLATE: 5
       MIN_LINE_FRAME: 200
       MAX_LINE_FRAME: 900
