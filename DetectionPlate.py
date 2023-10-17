@@ -320,7 +320,7 @@ if __name__ == "__main__":
     terminate_threads = True
     status = True
     last_plate_time = int(time.time())
-
+    '''
     tesseract_gray = 130
     scale_factor_cascade = 1.1
     camera_source = "rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101"
@@ -338,7 +338,8 @@ if __name__ == "__main__":
     min_line_frame = os.getenv("MIN_LINE_FRAME")
     max_line_frane = os.getenv("MAX_LINE_FRAME")
     max_plates = os.getenv("MAX_PLATES")    
-    '''
+    frame_step = os.getenv("FRAME_STEP")
+    time_between_readings = os.getenv("time_between_readings")
 
     print('tesseract_gray=', tesseract_gray)
     print('scale_factor_cascade=', scale_factor_cascade)
@@ -349,6 +350,7 @@ if __name__ == "__main__":
     print('max_plates=', max_plates)
     print('frame_step=', frame_step)
     print('time_between_readings=', time_between_readings)
+
     finalPlate = MostCommonChar()
     platesALPR = []
     platesOCR = []
