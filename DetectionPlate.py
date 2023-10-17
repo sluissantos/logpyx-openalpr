@@ -340,13 +340,15 @@ if __name__ == "__main__":
     max_plates = os.getenv("MAX_PLATES")    
     '''
 
-    print('gray=', tesseract_gray)
-    print('scale=', scale_factor_cascade)
-    print('camerasource=', camera_source)
-    print('time=', time_out_send_plate)
-    print('minLine=', min_line_frame)
-    print('maxLine=', max_line_frane)
-    
+    print('tesseract_gray=', tesseract_gray)
+    print('scale_factor_cascade=', scale_factor_cascade)
+    print('camera_source=', camera_source)
+    print('time_out_send_plate=', time_out_send_plate)
+    print('min_line_frame=', min_line_frame)
+    print('max_line_frane=', max_line_frane)
+    print('max_plates=', max_plates)
+    print('frame_step=', frame_step)
+    print('time_between_readings=', time_between_readings)
     finalPlate = MostCommonChar()
     platesALPR = []
     platesOCR = []
@@ -361,7 +363,7 @@ if __name__ == "__main__":
         lenPlate = 9
     elif(plat == 'Windows'):
         lenPlate = 8
-    car_cascade = cv2.CascadeClassifier('/home/logpyx-openalpr/openalpr/runtime_data/region/br.xml')
+    car_cascade = cv2.CascadeClassifier(script_directory+'/openalpr/runtime_data/region/br.xml')
 
     # definição e start das threads
     p0 = threading.Thread(target=check_mqtt_connection)
