@@ -16,11 +16,21 @@ RUN apt-get update && \
     tesseract-ocr \
     nano \
     python3-pip \
-    iproute2 \
     v4l-utils \
-    --reinstall libxcb-xinerama0 \
-    iputils-ping 
+    --reinstall libxcb-xinerama0 
 
+# Remover pacotes relacionados à interface gráfica
+RUN apt-get remove -y --auto-remove --purge \
+    ubuntu-desktop \
+    gnome-panel \
+    lightdm \
+    firefox
+
+# Limpar o cache do apt-get
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Definir a variável de ambiente para desabilitar a interface gráfica
+ENV DEBIAN_FRONTEND noninteractive
 
 WORKDIR /home
 RUN git clone https://github.com/sluissantos/logpyx-openalpr.git /home/logpyx-openalpr

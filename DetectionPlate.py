@@ -176,9 +176,14 @@ def findRectPlateCascade(ident, car_cascade):
                         cars = []
                         area = None
                         break
-
+        '''
+        if cv2.waitKey(1) & 0xff == ord('q'):
+            break
+        '''
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+    return
+
 
 # Função recursiva para o caso em que a câmera IP tenha falha de conexão.
 def reconnect(source): 
@@ -303,11 +308,11 @@ def check_mqtt_connection():
 
 #Init
 if __name__ == "__main__":
-    '''
     if os.geteuid() == 0:
         os.nice(-20)
         print('User priority')
-    '''
+    else:
+        print('Not user priority')
     q=queue.Queue()
 
     try:
@@ -315,31 +320,46 @@ if __name__ == "__main__":
     except NameError:
         script_directory = os.path.dirname(os.path.abspath('DetectionPlate.py'))
 
-
     cap = None
     terminate_threads = True
     status = True
     last_plate_time = int(time.time())
-    '''
-    tesseract_gray = 130
-    scale_factor_cascade = 1.1
-    camera_source = "rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101"
-    time_out_send_plate = 5
-    min_line_frame = 200
-    max_line_frane = 900
-    max_plates = 100
-    frame_step = 5
-    time_between_readings = 10
-    '''
+
     tesseract_gray = os.getenv("TESSERACT_GRAY")
+    if tesseract_gray is None or tesseract_gray.strip() == "":
+        tesseract_gray = 130
+    
     scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
+    if scale_factor_cascade is None or scale_factor_cascade.strip() == "":
+        scale_factor_cascade = 1.1
+
     camera_source = os.getenv("CAMERA_SOURCE")
+    if camera_source is None or camera_source.strip() == "":
+        camera_source = "rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101"
+
     time_out_send_plate = os.getenv("TIME_OUT_SEND_PLATE")
+    if time_out_send_plate is None or time_out_send_plate.strip() == "":
+        time_out_send_plate = 5
+
     min_line_frame = os.getenv("MIN_LINE_FRAME")
+    if min_line_frame is None or min_line_frame.strip() == "":
+        min_line_frame = 200
+
     max_line_frane = os.getenv("MAX_LINE_FRAME")
+    if max_line_frane is None or max_line_frane.strip() == "":
+        max_line_frane = 900
+
     max_plates = os.getenv("MAX_PLATES")    
+    if max_plates is None or max_plates.strip() == "":
+        max_plates = 100
+
     frame_step = os.getenv("FRAME_STEP")
+    if frame_step is None or frame_step.strip() == "":
+        frame_step = 5
+
     time_between_readings = os.getenv("TIME_BETWEEN_READINGS")
+    if time_between_readings is None or time_between_readings.strip() == "":
+        time_between_readings = 10
 
     print('tesseract_gray=', tesseract_gray)
     print('scale_factor_cascade=', scale_factor_cascade)

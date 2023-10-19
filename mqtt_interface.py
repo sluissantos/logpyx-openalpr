@@ -3,22 +3,29 @@ import time
 import json
 import os
 
-# variáveis globais atribúidas à partir das variáveis de ambiente inicializadas no sistema.
-#ip_mqtt = "gwqa.revolog.com.br"
-'''
-ip_mqtt = "10.50.239.100"
-port_mqtt = "1883"
-username_mqtt = "tecnologia"
-password_mqtt = "128Parsecs!"
-publish_topic = "aperam/plate"
-publish_topic_status = "aperam/status"
-'''
 ip_mqtt = os.getenv("IP_MQTT")
+if ip_mqtt is None or ip_mqtt.strip() == "":
+    ip_mqtt = "10.50.239.100"
+
 port_mqtt = os.getenv("PORT_MQTT")
+if port_mqtt is None or port_mqtt.strip() == "":
+    port_mqtt = 1883
+
 username_mqtt = os.getenv("USER_NAME_MQTT")
+if username_mqtt is None or username_mqtt.strip() == "":
+    username_mqtt = "tecnologia"
+
 password_mqtt = os.getenv("PASSWORD_MQTT")
+if password_mqtt is None or password_mqtt.strip() == "":
+    password_mqtt = "128Parsecs!"
+
 publish_topic = os.getenv("PUBLISH_TOPIC")
+if publish_topic is None or publish_topic.strip() == "":
+    publish_topic = "aperam/plate"
+
 publish_topic_status = os.getenv("PUBLISH_TOPIC_STATUS")
+if publish_topic_status is None or publish_topic_status.strip() == "":
+    publish_topic_status = "aperam/status"
 
 print('ip=', ip_mqtt)
 print('port=', port_mqtt)

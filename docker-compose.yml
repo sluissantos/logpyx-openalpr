@@ -2,7 +2,7 @@ version: '3'
 
 services:
   detectionplate:
-    image: "logpyx/aperam:1.0"
+    image: "ubuntu:latest"
     environment:
       IP_MQTT: 10.50.239.100
       PORT_MQTT: 1883
@@ -17,6 +17,7 @@ services:
       MIN_LINE_FRAME: 200
       MAX_LINE_FRAME: 900
       MAX_PLATES: 100
-      FRAME_STEP: 5
+      FRAME_STEP: 10
       TIME_BETWEEN_READINGS: 10
     cpus: 1
+    command: ["bash", "-c", "cd /home/logpyx-openalpr && python3 DetectionPlate.py"]
