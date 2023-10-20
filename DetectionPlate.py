@@ -345,7 +345,7 @@ if __name__ == "__main__":
     
     scale_factor_cascade = os.getenv("SCALE_FACTOR_CASCADE")
     if scale_factor_cascade is None or scale_factor_cascade.strip() == "":
-        scale_factor_cascade = 1.1
+        scale_factor_cascade = 1.5
 
     camera_source = os.getenv("CAMERA_SOURCE")
     if camera_source is None or camera_source.strip() == "":

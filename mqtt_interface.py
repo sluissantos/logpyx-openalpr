@@ -95,7 +95,7 @@ def send_message_plate(id, plate):
 def send_message_status(string_source, status):
     json_data = {
         "tmst": int(time.time()),
-        "ip": string_source,
+        "id": string_source,
         "status": status
     }
     json_string = json.dumps(json_data)

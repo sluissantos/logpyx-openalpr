@@ -2,7 +2,7 @@ version: '3'
 
 services:
   detectionplate:
-    image: "ubuntu:latest"
+    image: "logpyx/aperam:1.0"
     environment:
       IP_MQTT: 10.50.239.100
       PORT_MQTT: 1883
@@ -11,12 +11,12 @@ services:
       PUBLISH_TOPIC: aperam/plate
       PUBLISH_TOPIC_STATUS: aperam/status
       TESSERACT_GRAY: 130
-      SCALE_FACTOR_CASCADE: 1.1
+      SCALE_FACTOR_CASCADE: 1.5
       CAMERA_SOURCE: rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101
       TIME_OUT_SEND_PLATE: 5
       MIN_LINE_FRAME: 200
       MAX_LINE_FRAME: 900
-      MAX_PLATES: 50
-      FRAME_STEP: 5
+      MAX_PLATES: 100
+      FRAME_STEP: 1
       TIME_BETWEEN_READINGS: 10
-    cpus: 1
+    cpus: 8
