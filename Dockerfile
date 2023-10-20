@@ -50,21 +50,6 @@ RUN pip install opencv-python-headless
 RUN pip install pytesseract
 RUN pip install paho-mqtt
 
-#ENV IP_MQTT=10.50.239.100
-#ENV PORT_MQTT=1883
-#ENV USER_NAME_MQTT=tecnologia
-#ENV PASSWORD_MQTT=128Parsecs!
-#ENV PUBLISH_TOPIC=aperam/plate
-#ENV PUBLISH_TOPIC_STATUS=aperam/status
-#ENV TESSERACT_GRAY=130
-#ENV SCALE_FACTOR_CASCADE=1.7
-#ENV CAMERA_SOURCE=rtsp://admin:128Parsecs!@10.50.239.20/Streaming/channels/101
-#ENV TIME_OUT_SEND_PLATE=5
-#ENV MIN_LINE_FRAME=200
-#ENV MAX_LINE_FRAME=900
-#ENV MAX_PLATES=100
-#ENV FRAME_STEP=5
-#ENV TIME_BETWEEN_READINGS=10
-
 USER root
-CMD ["python3", "/home/logpyx-openalpr/DetectionPlate.py"]
+CMD ["bash"]
+#CMD ["python3", "/home/logpyx-openalpr/DetectionPlate.py"]

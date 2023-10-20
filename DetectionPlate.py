@@ -126,7 +126,7 @@ def findRectPlateCascade(ident, car_cascade):
     global platesOCR
     global finalPlate
     global terminate_threads
-    global p1
+    global t_receive
     global camera_source
     global cap
     global time_between_readings
@@ -148,16 +148,25 @@ def findRectPlateCascade(ident, car_cascade):
                     platesALPR = []
                     cars = []
                     terminate_threads = False
-                    while not q.empty():
-                        q.get()
-                    p1.join()
+                    q_lock.acquire()
+                    try:
+                        while not q.empty():
+                            q.get()
+                    finally:
+                        q_lock.release()
+                    t_receive.join()
                     cap.release()
                     time.sleep(int(time_between_readings))
                     terminate_threads = True
-                    p1 = threading.Thread(target=Receive, args=(camera_source,))
-                    p1.start()
+                    t_receive = threading.Thread(target=Receive, args=(camera_source,))
+                    t_receive.start()
                 tempo = int(time.time())
             else:
+                q_lock.acquire()
+                try:
+                    frame = q.get()
+                finally:
+                    q_lock.release()
                 frame = q.get()
                 area = frame[int(min_line_frame):int(max_line_frane), :]
                 area_printed = area
@@ -176,10 +185,10 @@ def findRectPlateCascade(ident, car_cascade):
                         cars = []
                         area = None
                         break
-        '''
+        
         if cv2.waitKey(1) & 0xff == ord('q'):
             break
-        '''
+
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     return
@@ -225,11 +234,15 @@ def reconhecimentoOCR(plate):
     text = list(pytesseract.image_to_string(plate, lang='eng', config=config))
     if(len(text)==lenPlate):
         if(normCaracterPlateList(text)[0] == 1):
-            platesOCR.append(normCaracterPlateList(text[0:7])[1])
-            print('Tesseract= ', normCaracterPlateList(text[0:7])[1])
-            finalPlate.insertChar(normCaracterPlateList(text[0:7])[1])
-            tempo = int(time.time())
-            last_plate_time = tempo
+            finalPlate_lock.acquire()
+            try:
+                platesOCR.append(normCaracterPlateList(text[0:7])[1])
+                print('Tesseract= ', normCaracterPlateList(text[0:7])[1])
+                finalPlate.insertChar(normCaracterPlateList(text[0:7])[1])
+                tempo = int(time.time())
+                last_plate_time = tempo
+            finally:
+                finalPlate_lock.release()
 
     return 
     
@@ -285,11 +298,15 @@ def reconhecimentoALPR(plate_alpr):
                 for candidate in plate['candidates']:
                     aux = list(candidate['plate'])
                     if(normCaracterPlateList(aux)[0] == 1):
-                        print('OpenALPR = ', ''.join(aux))
-                        platesALPR.append(''.join(aux))
-                        finalPlate.insertChar(''.join(aux))
-                        tempo = int(time.time())
-                        last_plate_time = tempo
+                        finalPlate_lock.acquire()
+                        try:
+                            print('OpenALPR = ', ''.join(aux))
+                            platesALPR.append(''.join(aux))
+                            finalPlate.insertChar(''.join(aux))
+                            tempo = int(time.time())
+                            last_plate_time = tempo
+                        finally:
+                            finalPlate_lock.release()
 
     finally:
         if alpr:
@@ -313,7 +330,9 @@ if __name__ == "__main__":
         print('User priority')
     else:
         print('Not user priority')
-    q=queue.Queue()
+
+    q = queue.Queue()
+    q_lock = threading.Lock()
 
     try:
         script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -355,7 +374,7 @@ if __name__ == "__main__":
 
     frame_step = os.getenv("FRAME_STEP")
     if frame_step is None or frame_step.strip() == "":
-        frame_step = 5
+        frame_step = 1
 
     time_between_readings = os.getenv("TIME_BETWEEN_READINGS")
     if time_between_readings is None or time_between_readings.strip() == "":
@@ -372,6 +391,8 @@ if __name__ == "__main__":
     print('time_between_readings=', time_between_readings)
 
     finalPlate = MostCommonChar()
+    finalPlate_lock = threading.Lock()
+
     platesALPR = []
     platesOCR = []
     lenPlate = None
@@ -388,12 +409,12 @@ if __name__ == "__main__":
     car_cascade = cv2.CascadeClassifier(script_directory+'/openalpr/runtime_data/region/br.xml')
 
     # definição e start das threads
-    p0 = threading.Thread(target=check_mqtt_connection)
-    p1 = threading.Thread(target=Receive, args=(camera_source,))
-    p2 = threading.Thread(target=findRectPlateCascade, args=(ident, car_cascade, ))
-    p3 = threading.Thread(target=publish_periodically, args=(ident,))
+    t_check_mqtt_connection = threading.Thread(target=check_mqtt_connection)
+    t_receive = threading.Thread(target=Receive, args=(camera_source,))
+    t_findRectPlateCascade = threading.Thread(target=findRectPlateCascade, args=(ident, car_cascade, ))
+    t_publish_status = threading.Thread(target=publish_periodically, args=(ident,))
 
-    p0.start()
-    p1.start()
-    p2.start()
-    p3.start()
+    t_check_mqtt_connection.start()
+    t_receive.start()
+    t_findRectPlateCascade.start()
+    t_publish_status.start()
