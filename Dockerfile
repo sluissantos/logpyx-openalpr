@@ -50,6 +50,4 @@ RUN pip install opencv-python-headless
 RUN pip install pytesseract
 RUN pip install paho-mqtt
 
-USER root
-CMD ["bash"]
-#CMD ["python3", "/home/logpyx-openalpr/DetectionPlate.py"]
+CMD ["python3", "/home/logpyx-openalpr/DetectionPlate.py"]

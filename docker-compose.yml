@@ -16,8 +16,7 @@ services:
       TIME_OUT_SEND_PLATE: 5
       MIN_LINE_FRAME: 200
       MAX_LINE_FRAME: 900
-      MAX_PLATES: 100
-      FRAME_STEP: 10
+      MAX_PLATES: 50
+      FRAME_STEP: 5
       TIME_BETWEEN_READINGS: 10
     cpus: 1
-    command: ["bash", "-c", "cd /home/logpyx-openalpr && python3 DetectionPlate.py"]
