@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:latest
 
 # Install prerequisites
 RUN apt-get update && \
@@ -51,4 +51,5 @@ RUN pip install pytesseract
 RUN pip install paho-mqtt
 
 USER root
-CMD ["python3", "/home/logpyx-openalpr/DetectionPlate.py"]
+CMD ["bash"]
+#CMD ["python3", "/home/logpyx-openalpr/DetectionPlate.py"]

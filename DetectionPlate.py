@@ -185,10 +185,10 @@ def findRectPlateCascade(ident, car_cascade):
                         cars = []
                         area = None
                         break
-        
+        '''
         if cv2.waitKey(1) & 0xff == ord('q'):
             break
-
+        '''
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     return
